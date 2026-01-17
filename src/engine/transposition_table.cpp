@@ -38,25 +38,25 @@ TranspositionTable::ProbeResult TranspositionTable::probe(
     size_t idx = index(key);
     TTEntry& entry = table_[idx];
     
-    ProbeResult result = {false, 0, Move(0, 0)};
+    ProbeResult result;
     
     if (entry.zobristKey == key && entry.depth >= depth) {
-        result.found = true;
-        result.bestMove = entry.bestMove;
+        result.found_ = true;
+        result.bestMove_ = entry.bestMove;
         
         if (entry.flag == static_cast<int8_t>(TTFlag::EXACT)) {
-            result.score = entry.score;
+            result.score_ = entry.score;
         } else if (entry.flag == static_cast<int8_t>(TTFlag::LOWER_BOUND)) {
             if (entry.score >= beta) {
-                result.score = entry.score;
+                result.score_ = entry.score;
             } else {
-                result.found = false;
+                result.found_ = false;
             }
         } else if (entry.flag == static_cast<int8_t>(TTFlag::UPPER_BOUND)) {
             if (entry.score <= alpha) {
-                result.score = entry.score;
+                result.score_ = entry.score;
             } else {
-                result.found = false;
+                result.found_ = false;
             }
         }
     }

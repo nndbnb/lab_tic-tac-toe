@@ -33,10 +33,20 @@ public:
     explicit TranspositionTable(size_t sizeMB = Config::TT_SIZE_MB);
     ~TranspositionTable();
     
-    struct ProbeResult {
-        bool found;
-        int score;
-        Move bestMove;
+    class ProbeResult {
+    public:
+        ProbeResult() : found_(false), score_(0), bestMove_(0, 0) {}
+        
+        bool isFound() const { return found_; }
+        int getScore() const { return score_; }
+        Move getBestMove() const { return bestMove_; }
+        
+        friend class TranspositionTable;
+        
+    private:
+        bool found_;
+        int score_;
+        Move bestMove_;
     };
     
     ProbeResult probe(uint64_t key, int depth, int alpha, int beta);
@@ -47,10 +57,7 @@ public:
     
     std::optional<Move> getPVMove(uint64_t key);
     
-    void incrementAge() { age_++; }
-    
-    size_t getSize() const { return size_; }
-    size_t getEntries() const { return entries_; }
+    friend class SearchEngine;
     
 private:
     size_t size_;
@@ -64,6 +71,10 @@ private:
     
     void replaceEntry(size_t idx, uint64_t key, int score, int depth, 
                      TTFlag flag, Move bestMove);
+    
+    void incrementAge() { age_++; }
+    size_t getSize() const { return size_; }
+    size_t getEntries() const { return entries_; }
 };
 
 } // namespace tictactoe

@@ -61,7 +61,7 @@ bool SearchEngine::hasThreats(const SparseBoard& board, Player player) {
                 
                 for (int j = 0; j < patterns.GetLength(); ++j) {
                     const auto& pattern = patterns.Get(j);
-                    if (pattern.length >= minThreatLength) {
+                    if (pattern.getLength() >= minThreatLength) {
                         return true;
                     }
                 }
@@ -105,7 +105,7 @@ void SearchEngine::orderMoves(adt::ArraySequence<Move>& moves,
 
 int SearchEngine::quiescence(SparseBoard& board, int alpha, int beta, 
                              Player player, int depth) {
-    stats_.nodes_searched++;
+    stats_.nodes_searched_++;
     
     if (timeout_ || depth > 4) {
         return evaluator_.evaluatePosition(board, player);
@@ -155,7 +155,7 @@ int SearchEngine::quiescence(SparseBoard& board, int alpha, int beta,
 
 int SearchEngine::negamax(SparseBoard& board, int depth, int alpha, int beta,
                          Player player, Move* pv, int pvIndex) {
-    stats_.nodes_searched++;
+    stats_.nodes_searched_++;
     
     if (timeout_) {
         return 0;
@@ -164,11 +164,11 @@ int SearchEngine::negamax(SparseBoard& board, int depth, int alpha, int beta,
     uint64_t hash = board.getZobristHash();
     
     auto ttResult = tt_.probe(hash, depth, alpha, beta);
-    if (ttResult.found) {
+    if (ttResult.isFound()) {
         if (pv && pvIndex < 20) {
-            pv[pvIndex] = ttResult.bestMove;
+            pv[pvIndex] = ttResult.getBestMove();
         }
-        return ttResult.score;
+        return ttResult.getScore();
     }
     
     if (board.isTerminal() || depth == 0) {
@@ -266,39 +266,39 @@ Move SearchEngine::findBestMove(SparseBoard& board, Player player, int timeMs) {
     
     auto winMove = checkImmediateWin(board, player);
     if (winMove.has_value()) {
-        stats_.time_ms = timer_.elapsedMs();
-        stats_.decision_type = DecisionType::IMMEDIATE_WIN;
-        stats_.final_score = std::numeric_limits<int>::max() / 2;
+        stats_.time_ms_ = timer_.elapsedMs();
+        stats_.decision_type_ = DecisionType::IMMEDIATE_WIN;
+        stats_.final_score_ = std::numeric_limits<int>::max() / 2;
         return *winMove;
     }
     
     auto blockMove = checkImmediateBlock(board, player);
     if (blockMove.has_value()) {
-        stats_.time_ms = timer_.elapsedMs();
-        stats_.decision_type = DecisionType::IMMEDIATE_BLOCK;
-        stats_.final_score = std::numeric_limits<int>::max() / 2 - 1;
+        stats_.time_ms_ = timer_.elapsedMs();
+        stats_.decision_type_ = DecisionType::IMMEDIATE_BLOCK;
+        stats_.final_score_ = std::numeric_limits<int>::max() / 2 - 1;
         return *blockMove;
     }
     
     auto dangerousThreat = checkDangerousThreat(board, player);
     if (dangerousThreat.has_value()) {
-        stats_.time_ms = timer_.elapsedMs();
-        stats_.decision_type = DecisionType::DANGEROUS_THREAT;
-        stats_.final_score = std::numeric_limits<int>::max() / 2 - 2;
+        stats_.time_ms_ = timer_.elapsedMs();
+        stats_.decision_type_ = DecisionType::DANGEROUS_THREAT;
+        stats_.final_score_ = std::numeric_limits<int>::max() / 2 - 2;
         return *dangerousThreat;
     }
     
     if (movesMade >= 4 && hasThreats(board, player)) {
         auto forcedMove = threatSolver_.findForcedWin(board, player, Config::THREAT_SOLVER_MAX_DEPTH);
         if (forcedMove.has_value()) {
-            stats_.time_ms = timer_.elapsedMs();
-            stats_.decision_type = DecisionType::THREAT_SOLVER;
-            stats_.final_score = std::numeric_limits<int>::max() / 2;
+            stats_.time_ms_ = timer_.elapsedMs();
+            stats_.decision_type_ = DecisionType::THREAT_SOLVER;
+            stats_.final_score_ = std::numeric_limits<int>::max() / 2;
             return *forcedMove;
         }
     }
     
-    stats_.decision_type = DecisionType::NEGAMAX_SEARCH;
+    stats_.decision_type_ = DecisionType::NEGAMAX_SEARCH;
     
     Move bestMove(0, 0);
     Move previousBestMove(0, 0);
@@ -332,13 +332,13 @@ Move SearchEngine::findBestMove(SparseBoard& board, Player player, int timeMs) {
         if (!timeout_ && board.isEmpty(pv[0].x, pv[0].y)) {
             bestMove = pv[0];
             bestMoveSet = true;
-            stats_.depth_reached = depth;
+            stats_.depth_reached_ = depth;
             
-            stats_.pv_length = 0;
+            stats_.pv_length_ = 0;
             for (int i = 0; i < depth && i < 20; ++i) {
                 if (pv[i].x == 0 && pv[i].y == 0) break;
-                stats_.principal_variation[i] = pv[i];
-                stats_.pv_length++;
+                stats_.principal_variation_[i] = pv[i];
+                stats_.pv_length_++;
             }
             
             if (depth >= 3) {
@@ -361,8 +361,8 @@ Move SearchEngine::findBestMove(SparseBoard& board, Player player, int timeMs) {
         tt_.incrementAge();
     }
     
-    stats_.time_ms = timer_.elapsedMs();
-    stats_.final_score = previousBestScore;
+    stats_.time_ms_ = timer_.elapsedMs();
+    stats_.final_score_ = previousBestScore;
     
     if (bestMoveSet && board.isEmpty(bestMove.x, bestMove.y)) {
         return bestMove;

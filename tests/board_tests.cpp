@@ -65,13 +65,13 @@ void testBoundingBox() {
     
     board.makeMove(10, 20, Player::X);
     bbox = board.getBoundingBox();
-    assert(bbox.min_x == 10 && bbox.max_x == 10);
-    assert(bbox.min_y == 20 && bbox.max_y == 20);
+    assert(bbox.getMinX() == 10 && bbox.getMaxX() == 10);
+    assert(bbox.getMinY() == 20 && bbox.getMaxY() == 20);
     
     board.makeMove(-5, -10, Player::O);
     bbox = board.getBoundingBox();
-    assert(bbox.min_x == -5 && bbox.max_x == 10);
-    assert(bbox.min_y == -10 && bbox.max_y == 20);
+    assert(bbox.getMinX() == -5 && bbox.getMaxX() == 10);
+    assert(bbox.getMinY() == -10 && bbox.getMaxY() == 20);
     
     std::cout << "  ✓ Bounding box passed\n";
 }

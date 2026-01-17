@@ -38,26 +38,34 @@ struct PositionHash {
     }
 };
 
-struct BoundingBox {
-    int min_x, max_x, min_y, max_y;
+class BoundingBox {
+public:
+    BoundingBox() : min_x_(0), max_x_(0), min_y_(0), max_y_(0) {}
     
-    BoundingBox() : min_x(0), max_x(0), min_y(0), max_y(0) {}
+    int getMinX() const { return min_x_; }
+    int getMaxX() const { return max_x_; }
+    int getMinY() const { return min_y_; }
+    int getMaxY() const { return max_y_; }
+    int getWidth() const { return max_x_ - min_x_ + 1; }
+    int getHeight() const { return max_y_ - min_y_ + 1; }
     
     void expand(int x, int y) {
-        if (min_x == max_x && min_y == max_y && min_x == 0 && min_y == 0) {
+        if (min_x_ == max_x_ && min_y_ == max_y_ && min_x_ == 0 && min_y_ == 0) {
             // First expansion
-            min_x = max_x = x;
-            min_y = max_y = y;
+            min_x_ = max_x_ = x;
+            min_y_ = max_y_ = y;
         } else {
-            min_x = std::min(min_x, x);
-            max_x = std::max(max_x, x);
-            min_y = std::min(min_y, y);
-            max_y = std::max(max_y, y);
+            min_x_ = std::min(min_x_, x);
+            max_x_ = std::max(max_x_, x);
+            min_y_ = std::min(min_y_, y);
+            max_y_ = std::max(max_y_, y);
         }
     }
     
-    int width() const { return max_x - min_x + 1; }
-    int height() const { return max_y - min_y + 1; }
+    friend class SparseBoard;
+    
+private:
+    int min_x_, max_x_, min_y_, max_y_;
 };
 
 class SparseBoard {
@@ -83,7 +91,6 @@ public:
     adt::ArraySequence<Position> getOccupiedPositions() const;
     
     uint64_t getZobristHash() const { return zobrist_hash_; }
-    void updateZobristHash(int x, int y, Player player);
     
     struct Move {
         int x, y;
@@ -100,6 +107,8 @@ private:
     adt::ArraySequence<Move> move_history_;
     
     static const Position directions_[4];
+    
+    void updateZobristHash(int x, int y, Player player);
     
     int countInDirection(int x, int y, const Position& dir, Player player) const;
     bool checkWinInDirection(int x, int y, const Position& dir, Player player) const;

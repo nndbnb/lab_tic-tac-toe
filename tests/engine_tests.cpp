@@ -67,9 +67,9 @@ void testSearchStats() {
     engine.findBestMove(board, Player::X, 1000);
     SearchStats stats = engine.getStats();
     
-    assert(stats.nodes_searched > 0);
-    assert(stats.depth_reached > 0);
-    assert(stats.time_ms >= 0);
+    assert(stats.getNodesSearched() > 0);
+    assert(stats.getDepthReached() > 0);
+    assert(stats.getTimeMs() >= 0);
     
     std::cout << "  ✓ Search statistics passed\n";
 }

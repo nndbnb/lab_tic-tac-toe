@@ -13,10 +13,10 @@ void printBoard(const SparseBoard& board) {
     BoundingBox bbox = board.getBoundingBox();
     
     int margin = 2;
-    int min_x = bbox.min_x - margin;
-    int max_x = bbox.max_x + margin;
-    int min_y = bbox.min_y - margin;
-    int max_y = bbox.max_y + margin;
+    int min_x = bbox.getMinX() - margin;
+    int max_x = bbox.getMaxX() + margin;
+    int min_y = bbox.getMinY() - margin;
+    int max_y = bbox.getMaxY() + margin;
     
     std::cout << "   ";
     for (int x = min_x; x <= max_x; ++x) {
@@ -59,7 +59,7 @@ std::string formatTime(int timeMs) {
 
 void printBriefReport(const SearchStats& stats) {
     std::string decisionType;
-    switch (stats.decision_type) {
+    switch (stats.getDecisionType()) {
         case DecisionType::IMMEDIATE_WIN:
             decisionType = "Immediate win";
             break;
@@ -77,9 +77,9 @@ void printBriefReport(const SearchStats& stats) {
             break;
     }
     
-    std::cout << "Time: " << formatTime(stats.time_ms) << " | Method: " << decisionType;
-    if (stats.decision_type == DecisionType::NEGAMAX_SEARCH) {
-        std::cout << " (depth " << stats.depth_reached << ")";
+    std::cout << "Time: " << formatTime(stats.getTimeMs()) << " | Method: " << decisionType;
+    if (stats.getDecisionType() == DecisionType::NEGAMAX_SEARCH) {
+        std::cout << " (depth " << stats.getDepthReached() << ")";
     }
     std::cout << "\n";
 }
@@ -87,7 +87,7 @@ void printBriefReport(const SearchStats& stats) {
 void printDetailedStats(const SearchStats& stats) {
     std::cout << "\n=== Detailed Search Statistics ===\n";
     std::cout << "Decision method: ";
-    switch (stats.decision_type) {
+    switch (stats.getDecisionType()) {
         case DecisionType::IMMEDIATE_WIN:
             std::cout << "Immediate Win (found winning move)\n";
             break;
@@ -105,18 +105,19 @@ void printDetailedStats(const SearchStats& stats) {
             break;
     }
     
-    std::cout << "Time: " << formatTime(stats.time_ms) << "\n";
-    std::cout << "Nodes searched: " << stats.nodes_searched << "\n";
+    std::cout << "Time: " << formatTime(stats.getTimeMs()) << "\n";
+    std::cout << "Nodes searched: " << stats.getNodesSearched() << "\n";
     
-    if (stats.decision_type == DecisionType::NEGAMAX_SEARCH) {
-        std::cout << "Depth reached: " << stats.depth_reached << "\n";
-        std::cout << "Final score: " << stats.final_score << "\n";
+    if (stats.getDecisionType() == DecisionType::NEGAMAX_SEARCH) {
+        std::cout << "Depth reached: " << stats.getDepthReached() << "\n";
+        std::cout << "Final score: " << stats.getFinalScore() << "\n";
         
-        if (stats.pv_length > 0) {
+        if (stats.getPvLength() > 0) {
             std::cout << "Principal variation: ";
-            for (int i = 0; i < stats.pv_length && i < 10; ++i) {
-                std::cout << "(" << stats.principal_variation[i].x 
-                         << "," << stats.principal_variation[i].y << ") ";
+            for (int i = 0; i < stats.getPvLength() && i < 10; ++i) {
+                Move pvMove = stats.getPrincipalVariation(i);
+                std::cout << "(" << pvMove.x 
+                         << "," << pvMove.y << ") ";
             }
             std::cout << "\n";
         }
@@ -265,18 +266,21 @@ int main(int argc, char* argv[]) {
                 std::cout << "  Attempted move: (" << aiMove.x << ", " << aiMove.y << ")\n";
                 std::cout << "  Cell is " << (board.isEmpty(aiMove.x, aiMove.y) ? "empty" : "occupied") << "\n";
                 std::cout << "  Decision type: ";
-                switch (stats.decision_type) {
+                switch (stats.getDecisionType()) {
                     case DecisionType::IMMEDIATE_WIN:
                         std::cout << "Immediate Win\n";
                         break;
                     case DecisionType::IMMEDIATE_BLOCK:
                         std::cout << "Immediate Block\n";
                         break;
+                    case DecisionType::DANGEROUS_THREAT:
+                        std::cout << "Dangerous Threat\n";
+                        break;
                     case DecisionType::THREAT_SOLVER:
                         std::cout << "Threat Solver\n";
                         break;
                     case DecisionType::NEGAMAX_SEARCH:
-                        std::cout << "Negamax Search (depth " << stats.depth_reached << ")\n";
+                        std::cout << "Negamax Search (depth " << stats.getDepthReached() << ")\n";
                         break;
                 }
                 std::cout << "  This should not happen - fallback logic failed!\n";

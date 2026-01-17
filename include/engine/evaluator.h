@@ -7,11 +7,24 @@
 
 namespace tictactoe {
 
-struct Pattern {
-    int length;
-    bool isOpen;
-    bool isBroken;
-    int score;
+class Pattern {
+public:
+    Pattern() : length_(0), isOpen_(false), isBroken_(false), score_(0) {}
+    Pattern(int length, bool isOpen, bool isBroken, int score) 
+        : length_(length), isOpen_(isOpen), isBroken_(isBroken), score_(score) {}
+    
+    int getLength() const { return length_; }
+    bool isOpen() const { return isOpen_; }
+    bool isBroken() const { return isBroken_; }
+    int getScore() const { return score_; }
+    
+    friend class Evaluator;
+    
+private:
+    int length_;
+    bool isOpen_;
+    bool isBroken_;
+    int score_;
 };
 
 class Evaluator {

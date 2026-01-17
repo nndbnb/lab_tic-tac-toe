@@ -22,21 +22,38 @@ enum class DecisionType {
     NEGAMAX_SEARCH
 };
 
-struct SearchStats {
-    int nodes_searched;
-    int depth_reached;
-    int time_ms;
-    Move principal_variation[20];
-    int pv_length;
-    DecisionType decision_type;
-    int final_score;
-    
-    SearchStats() : nodes_searched(0), depth_reached(0), time_ms(0), pv_length(0),
-                    decision_type(DecisionType::NEGAMAX_SEARCH), final_score(0) {
+class SearchStats {
+public:
+    SearchStats() : nodes_searched_(0), depth_reached_(0), time_ms_(0), pv_length_(0),
+                    decision_type_(DecisionType::NEGAMAX_SEARCH), final_score_(0) {
         for (int i = 0; i < 20; ++i) {
-            principal_variation[i] = Move(0, 0);
+            principal_variation_[i] = Move(0, 0);
         }
     }
+    
+    int getNodesSearched() const { return nodes_searched_; }
+    int getDepthReached() const { return depth_reached_; }
+    int getTimeMs() const { return time_ms_; }
+    DecisionType getDecisionType() const { return decision_type_; }
+    int getFinalScore() const { return final_score_; }
+    int getPvLength() const { return pv_length_; }
+    Move getPrincipalVariation(int index) const {
+        if (index >= 0 && index < 20) {
+            return principal_variation_[index];
+        }
+        return Move(0, 0);
+    }
+    
+    friend class SearchEngine;
+    
+private:
+    int nodes_searched_;
+    int depth_reached_;
+    int time_ms_;
+    Move principal_variation_[20];
+    int pv_length_;
+    DecisionType decision_type_;
+    int final_score_;
 };
 
 class SearchEngine {

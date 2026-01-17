@@ -62,7 +62,7 @@ void testPatternDetection() {
     bool foundOpen3 = false;
     for (int i = 0; i < patterns.GetLength(); ++i) {
         const auto& p = patterns.Get(i);
-        if (p.length == 3 && p.isOpen) {
+        if (p.getLength() == 3 && p.isOpen()) {
             foundOpen3 = true;
         }
     }

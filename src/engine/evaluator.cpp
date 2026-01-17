@@ -123,10 +123,10 @@ Pattern Evaluator::analyzeLine(
     LineInfo info = analyzeLineInfo(board, x, y, dir, player);
     
     Pattern pattern;
-    pattern.length = info.own_count;
-    pattern.isOpen = (info.left_space > 0 && info.right_space > 0);
-    pattern.isBroken = info.has_break;
-    pattern.score = calculatePatternScore(pattern.length, pattern.isOpen, pattern.isBroken);
+    pattern.length_ = info.own_count;
+    pattern.isOpen_ = (info.left_space > 0 && info.right_space > 0);
+    pattern.isBroken_ = info.has_break;
+    pattern.score_ = calculatePatternScore(pattern.length_, pattern.isOpen_, pattern.isBroken_);
     
     return pattern;
 }
@@ -138,7 +138,7 @@ adt::ArraySequence<Pattern> Evaluator::detectPatterns(
     
     for (int i = 0; i < 4; ++i) {
         Pattern p = analyzeLine(board, x, y, directions_[i], player);
-        if (p.length > 0) {
+        if (p.getLength() > 0) {
             patterns.AppendInPlace(p);
         }
     }
@@ -154,10 +154,10 @@ int Evaluator::detectForks(const SparseBoard& board, int x, int y, Player player
     
     for (int i = 0; i < patterns.GetLength(); ++i) {
         const auto& pattern = patterns.Get(i);
-        if (pattern.length >= win_length_ - 1 && pattern.isOpen) {
+        if (pattern.getLength() >= win_length_ - 1 && pattern.isOpen()) {
             threatCount++;
         }
-        totalScore += pattern.score;
+        totalScore += pattern.getScore();
     }
     
     if (threatCount >= 2) {
@@ -183,8 +183,8 @@ int Evaluator::evaluateMove(const SparseBoard& board, int x, int y, Player playe
     
     for (int i = 0; i < opponentPatterns.GetLength(); ++i) {
         const auto& pattern = opponentPatterns.Get(i);
-        if (pattern.length >= win_length_ - 1) {
-            score += pattern.score;
+        if (pattern.getLength() >= win_length_ - 1) {
+            score += pattern.getScore();
         }
     }
     
@@ -202,12 +202,12 @@ int Evaluator::evaluatePosition(const SparseBoard& board, Player player) {
         if (cellPlayer == player) {
             auto patterns = detectPatterns(board, pos.x, pos.y, player);
             for (int j = 0; j < patterns.GetLength(); ++j) {
-                score += patterns.Get(j).score;
+                score += patterns.Get(j).getScore();
             }
         } else {
             auto patterns = detectPatterns(board, pos.x, pos.y, cellPlayer);
             for (int j = 0; j < patterns.GetLength(); ++j) {
-                score -= patterns.Get(j).score;
+                score -= patterns.Get(j).getScore();
             }
         }
     }

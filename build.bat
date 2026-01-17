@@ -56,11 +56,17 @@ echo Linking main executable...
 %CC% %CFLAGS% ../src/main.cpp %OBJS% %LDFLAGS% -o tictactoe_engine.exe
 if errorlevel 1 goto :error
 
+REM Link web CLI executable
+echo Linking web CLI executable...
+%CC% %CFLAGS% ../src/web_cli.cpp %OBJS% %LDFLAGS% -o web_cli.exe
+if errorlevel 1 goto :error
+
 cd ..
 echo.
 echo === Build successful! ===
 echo Executable is in build/ directory:
 echo   - tictactoe_engine.exe
+echo   - web_cli.exe
 echo.
 echo To build tests, run: build_tests.bat
 goto :end

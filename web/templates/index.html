@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Tic-Tac-Toe - LR-auto</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .setup-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-panel {
+            display: none;
+        }
+
+        .game-panel.active {
+            display: block;
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .game-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .current-player {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .board-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            overflow: auto;
+            padding: 10px;
+        }
+
+        .board-controls button {
+            padding: 8px 16px;
+            min-width: 80px;
+            font-size: 14px;
+        }
+
+        .zoom-level {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-weight: 600;
+            color: #555;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .board-wrapper {
+            display: inline-block;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+        }
+
+        .board {
+            display: grid;
+            gap: 2px;
+            background: #333;
+            padding: 2px;
+        }
+
+        .board-cell {
+            width: 40px;
+            height: 40px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .board-cell:hover:not(.filled):not(.disabled) {
+            background: #e9ecef;
+            transform: scale(1.1);
+        }
+
+        .board-cell.filled {
+            cursor: not-allowed;
+        }
+
+        .board-cell.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .board-cell.x {
+            color: #e74c3c;
+        }
+
+        .board-cell.o {
+            color: #3498db;
+        }
+
+        .board-cell.last-move {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .board-cell.coord {
+            font-size: 10px;
+            color: #999;
+            background: #f0f0f0;
+            cursor: default;
+        }
+
+        .stats-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stats-panel h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .advanced-logs {
+            display: none;
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #667eea;
+        }
+
+        .advanced-logs.show {
+            display: block;
+        }
+
+        .advanced-logs h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .log-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-label {
+            font-weight: 600;
+            color: #666;
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        .log-value {
+            color: #333;
+        }
+
+        .stat-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            font-size: 1.1em;
+            color: #333;
+            margin-top: 3px;
+        }
+
+        .pv-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .pv-item {
+            display: inline-block;
+            margin: 3px;
+            padding: 5px 10px;
+            background: #e9ecef;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .move-history {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .move-history h3 {
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .move-item {
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .move-item.ai-move {
+            background: #e3f2fd;
+        }
+
+        .result-panel {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .result-panel.show {
+            display: block;
+        }
+
+        .result-panel.draw {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .result-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #155724;
+        }
+
+        .result-panel.draw .result-text {
+            color: #856404;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Infinite Tic-Tac-Toe</h1>
+
+        <!-- Setup Panel -->
+        <div class="setup-panel" id="setupPanel">
+            <h2 style="margin-bottom: 20px; color: #555;">Настройки игры</h2>
+            
+            <div class="form-group">
+                <label for="winLength">Длина для победы (3-20):</label>
+                <input type="number" id="winLength" min="3" max="20" value="5">
+            </div>
+
+            <div class="form-group">
+                <label for="humanPlayer">Вы играете за:</label>
+                <select id="humanPlayer">
+                    <option value="X">X (крестики)</option>
+                    <option value="O">O (нолики)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="firstPlayer">Кто ходит первым:</label>
+                <select id="firstPlayer">
+                    <option value="human">Вы</option>
+                    <option value="ai">AI</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="aiTime">Время на ход AI (мс, 100-30000):</label>
+                <input type="number" id="aiTime" min="100" max="30000" value="5000">
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="advancedLogs" style="width: auto; margin-right: 10px;">
+                    <span>Показывать продвинутые логи</span>
+                </label>
+            </div>
+
+            <div class="button-group" style="margin-top: 20px;">
+                <button onclick="startGame()" style="width: 100%;">Начать игру</button>
+            </div>
+        </div>
+
+        <!-- Game Panel -->
+        <div class="game-panel" id="gamePanel">
+            <div class="result-panel" id="resultPanel">
+                <div class="result-text" id="resultText"></div>
+            </div>
+
+            <div class="game-info">
+                <div class="current-player">
+                    Ход игрока: <span id="currentPlayer">X</span>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                AI думает...
+            </div>
+
+            <div class="game-layout">
+                <div class="game-main">
+                    <div class="board-controls">
+                        <button onclick="zoomOut()">- Уменьшить</button>
+                        <div class="zoom-level" id="zoomLevel">100%</div>
+                        <button onclick="zoomIn()">+ Увеличить</button>
+                        <button onclick="resetZoom()">Сброс</button>
+                    </div>
+                    <div class="board-container">
+                        <div class="board-wrapper" id="boardWrapper">
+                            <div class="board" id="board"></div>
+                        </div>
+                    </div>
+
+                    <div class="move-history">
+                        <h3>История ходов</h3>
+                        <div id="moveHistory"></div>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <h3>Статистика поиска</h3>
+                    <div id="statsContent">
+                        <div class="stat-item">
+                            <div class="stat-label">Время поиска</div>
+                            <div class="stat-value" id="statTime">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Метод решения</div>
+                            <div class="stat-value" id="statMethod">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Глубина поиска</div>
+                            <div class="stat-value" id="statDepth">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Узлов просмотрено</div>
+                            <div class="stat-value" id="statNodes">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Оценка позиции</div>
+                            <div class="stat-value" id="statScore">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Principal Variation</div>
+                            <div class="pv-list" id="statPV">-</div>
+                        </div>
+                    </div>
+                    <div class="advanced-logs" id="advancedLogs">
+                        <h4>Детальная информация</h4>
+                        <div id="advancedLogsContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="resetGame()">Новая игра</button>
+                <button onclick="backToSetup()">Настройки</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameId = null;
+        let gameState = null;
+        let boardCells = {};
+        let zoomLevel = 100;
+        let showAdvancedLogs = false;
+
+        async function startGame() {
+                const winLength = parseInt(document.getElementById('winLength').value);
+                const humanPlayer = document.getElementById('humanPlayer').value;
+                const firstPlayer = document.getElementById('firstPlayer').value;
+                const aiTime = parseInt(document.getElementById('aiTime').value);
+                showAdvancedLogs = document.getElementById('advancedLogs').checked;
+
+            try {
+                const response = await fetch('/api/new_game', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        win_length: winLength,
+                        human_player: humanPlayer,
+                        first_player: firstPlayer,
+                        ai_time_ms: aiTime
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.error);
+                    return;
+                }
+
+                const data = await response.json();
+                gameId = data.game_id;
+                gameState = {
+                    board: data.board,
+                    current_player: data.current_player,
+                    win_length: winLength,
+                    human_player: humanPlayer,
+                    moves: [],
+                    game_over: data.game_over || false,
+                    winner: data.winner || null
+                };
+                
+                zoomLevel = 100;
+                updateZoom();
+                updateAdvancedLogsVisibility();
+
+                document.getElementById('setupPanel').style.display = 'none';
+                document.getElementById('gamePanel').classList.add('active');
+
+                renderBoard(data.board);
+                updateGameInfo();
+
+                if (data.move) {
+                    gameState.moves.push({
+                        x: data.move.x,
+                        y: data.move.y,
+                        player: humanPlayer === 'X' ? 'O' : 'X',
+                        is_ai: true,
+                        stats: data.stats
+                    });
+                    updateStats(data.stats);
+                    updateMoveHistory();
+                }
+
+                if (data.game_over) {
+                    checkGameEnd(data);
+                }
+            } catch (error) {
+                alert('Ошибка подключения к серверу');
+                console.error(error);
+            }
+        }
+
+        function renderBoard(board) {
+            const boardElement = document.getElementById('board');
+            boardElement.innerHTML = '';
+            boardCells = {};
+
+            if (!board || !board.cells || board.cells.length === 0) {
+                const size = 5;
+                const offset = Math.floor(size / 2);
+                
+                boardElement.style.gridTemplateColumns = `30px repeat(${size}, 40px)`;
+                boardElement.style.gridTemplateRows = `30px repeat(${size}, 40px)`;
+                
+                const corner = document.createElement('div');
+                corner.className = 'board-cell coord';
+                boardElement.appendChild(corner);
+                
+                for (let x = -offset; x <= offset; x++) {
+                    const header = document.createElement('div');
+                    header.className = 'board-cell coord';
+                    header.textContent = x;
+                    boardElement.appendChild(header);
+                }
+                
+                for (let y = offset; y >= -offset; y--) {
+                    const rowHeader = document.createElement('div');
+                    rowHeader.className = 'board-cell coord';
+                    rowHeader.textContent = y;
+                    boardElement.appendChild(rowHeader);
+                    
+                    for (let x = -offset; x <= offset; x++) {
+                        const cell = createCell(x, y, null);
+                        boardElement.appendChild(cell);
+                    }
+                }
+                return;
+            }
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            board.cells.forEach(cell => {
+                minX = Math.min(minX, cell.x);
+                maxX = Math.max(maxX, cell.x);
+                minY = Math.min(minY, cell.y);
+                maxY = Math.max(maxY, cell.y);
+            });
+
+            const margin = 2;
+            minX -= margin;
+            maxX += margin;
+            minY -= margin;
+            maxY += margin;
+
+            const width = maxX - minX + 1;
+            const height = maxY - minY + 1;
+
+            boardElement.style.gridTemplateColumns = `30px repeat(${width}, 40px)`;
+            boardElement.style.gridTemplateRows = `30px repeat(${height}, 40px)`;
+
+            const corner = document.createElement('div');
+            corner.className = 'board-cell coord';
+            boardElement.appendChild(corner);
+
+            for (let x = minX; x <= maxX; x++) {
+                const header = document.createElement('div');
+                header.className = 'board-cell coord';
+                header.textContent = x;
+                boardElement.appendChild(header);
+            }
+
+            for (let y = maxY; y >= minY; y--) {
+                const rowHeader = document.createElement('div');
+                rowHeader.className = 'board-cell coord';
+                rowHeader.textContent = y;
+                boardElement.appendChild(rowHeader);
+
+                for (let x = minX; x <= maxX; x++) {
+                    const cellData = board.cells.find(c => c.x === x && c.y === y);
+                    const cell = createCell(x, y, cellData ? cellData.player : null);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
+
+        function createCell(x, y, player) {
+            const cell = document.createElement('div');
+            cell.className = 'board-cell';
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+
+            if (player) {
+                cell.textContent = player;
+                cell.classList.add('filled', player.toLowerCase());
+            } else {
+                cell.addEventListener('click', () => makeMove(x, y));
+            }
+
+            boardCells[`${x},${y}`] = cell;
+            return cell;
+        }
+
+        function highlightLastMove(x, y) {
+            document.querySelectorAll('.board-cell.last-move').forEach(cell => {
+                cell.classList.remove('last-move');
+            });
+
+            const cell = boardCells[`${x},${y}`];
+            if (cell) {
+                cell.classList.add('last-move');
+            }
+        }
+
+        async function makeMove(x, y) {
+            if (gameState.game_over || gameState.current_player !== gameState.human_player) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/make_move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        game_id: gameId,
+                        x: x,
+                        y: y
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.error);
+                    return;
+                }
+
+                const data = await response.json();
+                gameState.board = data.board;
+                gameState.current_player = data.current_player;
+                gameState.game_over = data.game_over || false;
+                gameState.winner = data.winner || null;
+                gameState.moves.push({
+                    x: x,
+                    y: y,
+                    player: gameState.human_player,
+                    is_ai: false
+                });
+
+                renderBoard(data.board);
+                highlightLastMove(x, y);
+                updateGameInfo();
+                updateMoveHistory();
+                checkGameEnd(data);
+
+                if (!data.game_over && data.current_player !== gameState.human_player) {
+                    setTimeout(makeAiMove, 500);
+                }
+            } catch (error) {
+                alert('Ошибка подключения к серверу');
+                console.error(error);
+            }
+        }
+
+        async function makeAiMove() {
+            if (gameState.game_over || gameState.current_player === gameState.human_player) {
+                return;
+            }
+
+            document.getElementById('loading').classList.add('show');
+
+            try {
+                const response = await fetch('/api/ai_move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        game_id: gameId
+                    })
+                });
+
+                document.getElementById('loading').classList.remove('show');
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Ошибка: ' + error.error);
+                    return;
+                }
+
+                const data = await response.json();
+                gameState.board = data.board;
+                gameState.current_player = data.current_player;
+                gameState.game_over = data.game_over || false;
+                gameState.winner = data.winner || null;
+                gameState.moves.push({
+                    x: data.move.x,
+                    y: data.move.y,
+                    player: gameState.current_player === 'X' ? 'O' : 'X',
+                    is_ai: true,
+                    stats: data.stats
+                });
+
+                renderBoard(data.board);
+                highlightLastMove(data.move.x, data.move.y);
+                updateGameInfo();
+                updateStats(data.stats);
+                updateMoveHistory();
+                checkGameEnd(data);
+            } catch (error) {
+                document.getElementById('loading').classList.remove('show');
+                alert('Ошибка подключения к серверу');
+                console.error(error);
+            }
+        }
+
+        function updateGameInfo() {
+            document.getElementById('currentPlayer').textContent = gameState.current_player;
+        }
+
+        function updateStats(stats) {
+            if (!stats) {
+                document.getElementById('statTime').textContent = '-';
+                document.getElementById('statMethod').textContent = '-';
+                document.getElementById('statDepth').textContent = '-';
+                document.getElementById('statNodes').textContent = '-';
+                document.getElementById('statScore').textContent = '-';
+                document.getElementById('statPV').innerHTML = '-';
+                document.getElementById('advancedLogsContent').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('statTime').textContent = stats.time_ms + ' ms';
+            
+            const methodNames = {
+                'IMMEDIATE_WIN': 'Immediate Win',
+                'IMMEDIATE_BLOCK': 'Immediate Block',
+                'DANGEROUS_THREAT': 'Dangerous Threat',
+                'THREAT_SOLVER': 'Threat Solver',
+                'NEGAMAX_SEARCH': 'Negamax Search'
+            };
+            document.getElementById('statMethod').textContent = methodNames[stats.decision_type] || stats.decision_type;
+            
+            if (stats.decision_type === 'NEGAMAX_SEARCH') {
+                document.getElementById('statDepth').textContent = stats.depth_reached;
+            } else {
+                document.getElementById('statDepth').textContent = '-';
+            }
+            
+            document.getElementById('statNodes').textContent = stats.nodes_searched || '-';
+            document.getElementById('statScore').textContent = stats.final_score || '-';
+            
+            const pvElement = document.getElementById('statPV');
+            if (stats.principal_variation && stats.principal_variation.length > 0) {
+                pvElement.innerHTML = '';
+                stats.principal_variation.forEach((move, index) => {
+                    const pvItem = document.createElement('span');
+                    pvItem.className = 'pv-item';
+                    pvItem.textContent = `(${move.x},${move.y})`;
+                    pvElement.appendChild(pvItem);
+                });
+            } else {
+                pvElement.textContent = '-';
+            }
+            
+            updateAdvancedLogs(stats);
+        }
+        
+        function updateAdvancedLogs(stats) {
+            const logsContent = document.getElementById('advancedLogsContent');
+            logsContent.innerHTML = '';
+            
+            if (!stats) return;
+            
+            const logs = [
+                { label: 'Тип решения', value: stats.decision_type },
+                { label: 'Время поиска', value: stats.time_ms + ' мс' },
+                { label: 'Глубина поиска', value: stats.depth_reached || 'N/A' },
+                { label: 'Узлов просмотрено', value: stats.nodes_searched || 0 },
+                { label: 'Финальная оценка', value: stats.final_score || 0 },
+                { label: 'Длина PV', value: (stats.principal_variation && stats.principal_variation.length) || 0 }
+            ];
+            
+            logs.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.className = 'log-item';
+                logItem.innerHTML = `<span class="log-label">${log.label}:</span><span class="log-value">${log.value}</span>`;
+                logsContent.appendChild(logItem);
+            });
+            
+            if (stats.principal_variation && stats.principal_variation.length > 0) {
+                const pvLog = document.createElement('div');
+                pvLog.className = 'log-item';
+                const pvStr = stats.principal_variation.map(m => `(${m.x},${m.y})`).join(' → ');
+                pvLog.innerHTML = `<span class="log-label">PV последовательность:</span><span class="log-value">${pvStr}</span>`;
+                logsContent.appendChild(pvLog);
+            }
+        }
+        
+        function updateAdvancedLogsVisibility() {
+            const advancedLogsPanel = document.getElementById('advancedLogs');
+            if (showAdvancedLogs) {
+                advancedLogsPanel.classList.add('show');
+            } else {
+                advancedLogsPanel.classList.remove('show');
+            }
+        }
+        
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel + 25, 200);
+            updateZoom();
+        }
+        
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel - 25, 50);
+            updateZoom();
+        }
+        
+        function resetZoom() {
+            zoomLevel = 100;
+            updateZoom();
+        }
+        
+        function updateZoom() {
+            const boardWrapper = document.getElementById('boardWrapper');
+            boardWrapper.style.transform = `scale(${zoomLevel / 100})`;
+            document.getElementById('zoomLevel').textContent = zoomLevel + '%';
+        }
+
+        function updateMoveHistory() {
+            const historyElement = document.getElementById('moveHistory');
+            historyElement.innerHTML = '';
+
+            if (gameState.moves.length === 0) {
+                historyElement.innerHTML = '<div style="color: #999;">Пока нет ходов</div>';
+                return;
+            }
+
+            gameState.moves.forEach((move, index) => {
+                const moveItem = document.createElement('div');
+                moveItem.className = 'move-item' + (move.is_ai ? ' ai-move' : '');
+                const aiLabel = move.is_ai ? ' 🤖' : '';
+                moveItem.textContent = `${index + 1}. ${move.player}: (${move.x}, ${move.y})${aiLabel}`;
+                historyElement.appendChild(moveItem);
+            });
+
+            historyElement.scrollTop = historyElement.scrollHeight;
+        }
+
+        function checkGameEnd(data) {
+            const resultPanel = document.getElementById('resultPanel');
+            const resultText = document.getElementById('resultText');
+
+            if (!data.game_over) {
+                resultPanel.classList.remove('show', 'draw');
+                return;
+            }
+
+            resultPanel.classList.add('show');
+
+            if (data.winner) {
+                resultPanel.classList.remove('draw');
+                resultText.textContent = `Победил ${data.winner}!`;
+            } else {
+                resultPanel.classList.add('draw');
+                resultText.textContent = 'Ничья!';
+            }
+        }
+
+        async function resetGame() {
+            if (!gameId) return;
+
+            try {
+                const response = await fetch(`/api/reset_game/${gameId}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reset game');
+                }
+
+                const data = await response.json();
+                gameState.board = data.board;
+                gameState.current_player = data.current_player;
+                gameState.moves = [];
+                gameState.game_over = data.game_over || false;
+                gameState.winner = data.winner || null;
+
+                renderBoard(data.board);
+                updateGameInfo();
+                updateMoveHistory();
+                updateStats(null);
+                document.getElementById('resultPanel').classList.remove('show', 'draw');
+
+                if (gameState.current_player !== gameState.human_player) {
+                    setTimeout(makeAiMove, 500);
+                }
+            } catch (error) {
+                alert('Ошибка при сбросе игры');
+                console.error(error);
+            }
+        }
+
+        function backToSetup() {
+            document.getElementById('setupPanel').style.display = 'block';
+            document.getElementById('gamePanel').classList.remove('active');
+            gameId = null;
+            gameState = null;
+            zoomLevel = 100;
+            updateZoom();
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    zoomIn();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    resetZoom();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
